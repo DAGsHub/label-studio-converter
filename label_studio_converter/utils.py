@@ -94,9 +94,10 @@ def _get_upload_dir(project_dir=None, upload_dir=None):
 
 
 def download(url, output_dir, filename=None, project_dir=None, return_relative_path=False, upload_dir=None,
-             download_resources=True):
+             download_resources=True, hash_file_names=True):
     is_local_file = url.startswith('/data/') and '?d=' in url
     is_uploaded_file = url.startswith('/data/upload')
+    is_repo_file = url.startswith('repo://')
 
     if is_uploaded_file:
         upload_dir = _get_upload_dir(project_dir, upload_dir)
@@ -119,9 +120,16 @@ def download(url, output_dir, filename=None, project_dir=None, return_relative_p
             raise NotImplementedError()
         return filepath
 
+    if is_repo_file:
+        filename = "/".join(url.split("repo://")[-1].split("/")[1:])
+        if return_relative_path:
+            return os.path.relpath(filename, project_dir)
+
     if filename is None:
         basename, ext = os.path.splitext(os.path.basename(urlparse(url).path))
-        filename = basename + '_' + hashlib.md5(url.encode()).hexdigest()[:4] + ext
+        if hash_file_names:
+            basename += '_' + hashlib.md5(url.encode()).hexdigest()[:4]
+        filename = basename + ext
     filepath = os.path.join(output_dir, filename)
     if not os.path.exists(filepath):
         logger.info('Download {url} to {filepath}'.format(url=url, filepath=filepath))
@@ -131,6 +139,8 @@ def download(url, output_dir, filename=None, project_dir=None, return_relative_p
             with io.open(filepath, mode='wb') as fout:
                 fout.write(r.content)
     if return_relative_path:
+        if project_dir is not None:
+            return os.path.relpath(url, project_dir)
         return os.path.join(os.path.basename(output_dir), filename)
     return filepath
 

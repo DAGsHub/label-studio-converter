@@ -305,7 +305,7 @@ class Converter(object):
                     outputs[r['from_name']].append(v)
 
             data = {
-                'id': task['id'],
+                'id': task.get('id'),
                 'input': inputs,
                 'output': outputs,
                 'completed_by': annotation.get('completed_by', {}),

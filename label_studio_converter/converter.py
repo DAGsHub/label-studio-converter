@@ -423,7 +423,7 @@ class Converter(object):
         output_file = os.path.join(output_dir, 'result.json')
         if output_image_dir is not None:
             ensure_dir(output_image_dir)
-        else:
+        elif self.download_resources:
             output_image_dir = os.path.join(output_dir, 'images')
             os.makedirs(output_image_dir, exist_ok=True)
         images, categories, annotations = [], [], []
